@@ -33,14 +33,15 @@ index_info AS (
         STRING_AGG(DISTINCT i.indexname, ', ') AS index_name,
         STRING_AGG(DISTINCT am.amname, ', ') AS index_type
     FROM pg_indexes i
-    JOIN pg_class c ON i.indexname = c.relname  -- Get index class
-    JOIN pg_index pi ON c.oid = pi.indexrelid  -- Get index metadata
-    JOIN pg_attribute a ON pi.indrelid = a.attrelid AND a.attnum = ANY(pi.indkey)  -- Get indexed columns
-    JOIN pg_am am ON c.relam = am.oid  -- Get index type (btree, hash, etc.)
+    JOIN pg_class c ON i.indexname = c.relname  
+    JOIN pg_index pi ON c.oid = pi.indexrelid  
+    JOIN pg_attribute a ON pi.indrelid = a.attrelid AND a.attnum = ANY(pi.indkey)  
+    JOIN pg_am am ON c.relam = am.oid  
     WHERE i.schemaname NOT IN ('pg_catalog', 'information_schema')
     GROUP BY i.schemaname, i.tablename, a.attname
 )
 SELECT 
+    col.table_schema AS "Schema Name",  -- Added schema column
     col.table_name AS "Table Name",
     col.column_name AS "Column Name",
     col.data_type AS "Column Type",
@@ -59,4 +60,4 @@ LEFT JOIN index_info idx
     ON col.table_schema = idx.schema_name
     AND col.table_name = idx.table_name
     AND col.column_name = idx.column_name
-ORDER BY col.table_name, col.column_name;
+ORDER BY col.table_schema, col.table_name, col.column_name;
